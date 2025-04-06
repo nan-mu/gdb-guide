@@ -12,41 +12,38 @@
 *** 
 #+TOC: headlines 2
 
-*** Intended Audience
-This tutorial is for folks in courses like the [[https://www-users.cse.umn.edu/~kauffman/2021/schedule.html][UMN's CSCI 2021]] or
-[[https://www.cs.umd.edu/~profk/216/schedule.html][UMD's CMSC 216]] which require use of GDB to work programs and perform
-debugging exercises like Bryant and O'Hallarons notorious "Binary
-Bomb" project.  Others may benefit from the guide as well if they are
-looking to get oriented using GDB.
+*** 受众
 
-* Starting the Debugger
-In a terminal, run ~gdb~ with a "text user interface"
+本教程适用于 [[https://www-users.cse.umn.edu/~kauffman/2021/schedule.html][UMN's CSCI 2021]] 或 [[https://www.cs.umd.edu/~profk/216/schedule.html][UMD's CMSC 216]] 等课程的学生。这些课程需要使用 GDB 编程并完成调试训练（例如Bryant 和 O'Hallarons 的 "Binary Bomb" 项目）。如果希望了解如何使用GDB，本教程也能提供很好的帮助。
+
+* 启动调试器
+在控制台中，以文本用户界面（text user interface）运行 ~gdb~
 #+BEGIN_SRC sh
 >> make puzzlebox
 gcc -Wall -g -c puzzlebox.c
 gcc -Wall -g -o puzzlebox puzzlebox.o
 
-# Note the -g option while compiling which adds debugging symbols for
-# the debugger: very useful
+# 注意，在编译时给编译器加上-g作为调试参数将为调试器提供非常有用的额外内容
 
-# Start gdb with the text user interface on program puzzlebox
+# 以文本用户界面（text user interface）启动 ~gdb~
 >> gdb -tui ./puzzlebox
 #+END_SRC
 
-** TUI Mode (recommended)
-The /Text User Interface/ (TUI) is enabled by running ~gdb~ with the ~-tui~ option. It shows
+** TUI 模式 (推荐)
+运行gdb时，我们通过 ~-tui~ 参数来启动文本用户界面（TUI）。它将展示：
+- 在下方为命令和命令历史
+- 在上方为调试程序源代码
 - Commands and history towards the bottom
 - Source code position towards the top
-The screen will occasionally get "messed up" which can be corrected by
-pressing ~Control-L~ which will force a redraw of the terminal screen.
+偶尔屏幕会变得“混乱”，这时我们通过~Control-L~强制重绘终端输出来纠正。
 
 #+BEGIN_CENTER
-#+CAPTION: ~gdb -tui ./puzzlebox~, the text user interface mode
+#+CAPTION: ~gdb -tui ./puzzlebox~, TUI模式
 #+ATTR_HTML:  :style max-width:100%;
 file:gdb-tui.png
 #+END_CENTER
 
-** Normal Mode
+** 普通模式
 TUI Mode contrasts to the Normal Mode of ~gdb~ which does not show any
 source code unless the ~list~ command is issued. While normal mode
 allows the up/down arrows to recall history and makes copy/paste with
