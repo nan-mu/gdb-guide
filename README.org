@@ -3,4 +3,6 @@
 Source code and repo for the GDB Quick Guide. View the full guide
 online at: https://kauffman77.github.io/tutorials/gdb.html
 
- 
+** 中文翻译施工中
+
+欢迎各位合作 @nan-mu <mu.nan.11 at outlook dot com>
