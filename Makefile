@@ -11,7 +11,7 @@ PUBLIC_MIRROR=${HOME}/github-pages
 
 gdb.html : gdb.org
 	emacs $< --batch \
-	  --eval '(load-file "~/.emacs")' \
+	  --eval '(load-file ".emacs")' \
 	  --eval "(package-initialize)" \
 	  --eval "(setq org-export-allow-bind-keywords t)" \
 	  -f org-html-export-to-html \
