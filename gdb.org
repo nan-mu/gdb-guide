@@ -44,169 +44,161 @@ file:gdb-tui.png
 #+END_CENTER
 
 ** 普通模式
-TUI Mode contrasts to the Normal Mode of ~gdb~ which does not show any
-source code unless the ~list~ command is issued. While normal mode
-allows the up/down arrows to recall history and makes copy/paste with
-the mouse more accessible on terminals, most folks find Normal Mode harder to
-work as it doesn't show the code position of the debugger.
+TUI模式与常规模式不同，它不会显示任何源代码，除非使用 ~list~ 命令。虽然普通模式能使用键盘上下键回溯运行命令历史，但大多数人认为普通模式更难使用，因为它不会显示调试器现在运行在源代码的哪个位置。
 
 #+BEGIN_CENTER
-#+CAPTION: ~gdb ./puzzlebox~, the normal "quiet" mode. Source code is only shown after ~list~ commands.
+#+CAPTION: ~gdb ./puzzlebox~, 普通且 "安静" 的模式。 源代码只会在使用 ~list~ 之后显示。
 #+ATTR_HTML:  :style max-width:100%;
 file:gdb-normal.png
 #+END_CENTER
 
-** Switching Modes
-If in normal mode, one can enter TUI mode with the command
+** 切换模式
+当你在使用普通模式时，你能够使用以下命令进入TUI模式
 : tui enable
-Switching to normal mode is done via
+切换回普通模式则通过
 : tui disable
 
-* A Typical Start to ~puzzlebox~
-The below sample run in ~gdb~ illustrates the basics of running
-~puzzlebox~ in the debugger. See the next section for some details on
-commands like ~next / run / break~.
+* 从 ~puzzlebox~ 的典型开始
+下面的 ~gdb~ 示例将说明使用调试器调试 ~puzzlebox~ 所需的基础。而下一节将详细说明命令 ~next / run / break~ 的细节。
 
 #+BEGIN_SRC sh
->> gdb -tui ./puzzlebox                                  # Start gdb with text user interface on the puzzlebox
+>> gdb -tui ./puzzlebox                                  # 启动TUI模式的gdb调试puzzlebox。
 GNU gdb (GDB) 8.1
 ...
 Reading symbols from ./puzzlebox...done.
-(gdb) set args input.txt                                 # set command line arguments to the input.txt
-(gdb) run                                                # run the program
+(gdb) set args input.txt                                 # 使用input.txt的内容作为被调试程序的运行参数。
+(gdb) run                                                # 让程序运行
 Starting program: puzzlebox input.txt
-UserID 'kauf0095' accepted: hash value = 1397510491      # program output
+UserID 'kauf0095' accepted: hash value = 1397510491      # 程序输出
 PHASE 1: A puzzle you say? Challenge accepted!
 
 Ah ah ah, you didnt say the magic word...
 Failure: Double debugger burger, order up!
 
   ,* Score: 0 / 50 pts *
-[Inferior 1 (process 27727) exited normally]             # gdb indicates program ended
+[Inferior 1 (process 27727) exited normally]             # gdb表示程序结束
 
-(gdb) break phase01                                      # set a breakpoint to stop at function phase01()
+(gdb) break phase01                                      # 在phase01()设置一个断点，这将停止phase01()函数的运行
 Breakpoint 1 at 0x55555555551a: file puzzlebox.c, line 220.
 (gdb) run
 Starting program: puzzlebox input.txt
 UserID 'kauf0095' accepted: hash value = 1397510491
 PHASE 1: A puzzle you say? Challenge accepted!
 
-Breakpoint 1, phase01 () at puzzlebox.c:220              # hit a breakpoint
-220	  int a = atoi(next_input());                    # stopped at this line of code
-(gdb) step                                               # step forward one line of code
-next_input () at puzzlebox.c:197                         # stepped into function next_input()
+Breakpoint 1, phase01 () at puzzlebox.c:220              # 程序运行触达一个断点
+220	  int a = atoi(next_input());                    # 程序停在这行
+(gdb) step                                               # 步进一行代码
+next_input () at puzzlebox.c:197                         # 停在 next_input() 函数
 197	  input_idx++;
-(gdb) step                                               # step again
+(gdb) step                                               # 又步进一次
 198	  int ret = fscanf(input_fh, "%s", inputs[input_idx]);
-(gdb) finish                                             # boring: finish this function
+(gdb) finish                                             # 我们不关心现在的结果，所以完成这个函数
 Run till exit from 0 next_input () at puzzlebox.c:198
 0x0000555555555524 in phase01 () at puzzlebox.c:220
-220	  int a = atoi(next_input());                    # back in phase01()
+220	  int a = atoi(next_input());                    # 返回 phase01()
 Value returned is $1 = 0x555555758380 <inputs+128> "1"
-(gdb) step                                               # forward
+(gdb) step                                               # 继续
 221	  int b = atoi(next_input());
-(gdb) next                                               # move past the call to next_input()
+(gdb) next                                               # 跳过对 next_input() 的调用
 222	  int c = atoi(next_input());
-(gdb) next                                               # past again: 3 inputs required for this phase
-224	  a += hash % 40;                                # doing something to a based on random hash...
-(gdb) print a                                            # show what happened to it
-$2 = 12                                                  # now has value 12
-(gdb) n                                                  # abbreviation for 'next'
-225	  if (a<b && b>c && a<c) {                       # some checks for a, b, c which are inputs
+(gdb) next                                               # 再次跳过: 现在这个阶段需要三个输入
+224	  a += hash % 40;                                # 一些基于随机哈希的操作...
+(gdb) print a                                            # 显示这个变量发什么什么
+$2 = 12                                                  # 现在它的值是 12
+(gdb) n                                                  # 'next' 的缩写
+225	  if (a<b && b>c && a<c) {                       # 检查a, b, c, 哪个是输入
 (gdb) next
-228	  failure("Double debugger burger, order up!");  # about to fail, must need different inputs
-(gdb) kill                                               # kill the program
+228	  failure("Double debugger burger, order up!");  # 这个错误表示需要不同的输入
+(gdb) kill                                               # 杀死程序
 Kill the program being debugged? (y or n) y
 
-                                                         # Edit intput.txt to have different values now
+                                                         # 现在，编辑 intput.txt 改变不同的变量
 
 
-(gdb) run                                                # re-run the program
+(gdb) run                                                # 重新运行程序
 Starting program: puzzlebox input.txt
 UserID 'kauf0095' accepted: hash value = 1397510491
 PHASE 1: A puzzle you say? Challenge accepted!
 
-Breakpoint 1, phase01 () at puzzlebox.c:220              # hit breakpoint again
+Breakpoint 1, phase01 () at puzzlebox.c:220              # 有一次触发断点
 220	  int a = atoi(next_input());
 
-(gdb) info break                                         # show info about which breakpoints are active
+(gdb) info break                                         # 显示被启用断点的信息
 Num     Type           Disp Enb Address            What
 1       breakpoint     keep y   0x000055555555551a in phase01 at puzzlebox.c:220
 	breakpoint already hit 1 time
 
-(gdb) break puzzlebox.c:225                              # don't feel like stepping: set a breakpoint some lines ahead
+(gdb) break puzzlebox.c:225                              # 为了不用一直步进，在这行之前设置一个断点
 Breakpoint 2 at 0x555555555583: file puzzlebox.c, line 225.
 
-(gdb) info break                                         # show info on active brekpoints
+(gdb) info break                                         # 再显示被启用断点的信息
 Num     Type           Disp Enb Address            What
 1       breakpoint     keep y   0x000055555555551a in phase01 at puzzlebox.c:220
 	breakpoint already hit 1 time
 2       breakpoint     keep y   0x0000555555555583 in phase01 at puzzlebox.c:225
 
-(gdb) continue                                           # continue executing until next breakpoint
+(gdb) continue                                           # 继续运行直到下一个断点
 Continuing.
 
-Breakpoint 2, phase01 () at puzzlebox.c:225              # hit second breakpoint
+Breakpoint 2, phase01 () at puzzlebox.c:225              # 触达第二个断点
 225	  if (a<b && b>c && a<c) {
-(gdb) print a                                            # a value
+(gdb) print a                                            # 看看 a 的值
 $3 = 21
-(gdb) next                                               # see if this works
-228	  failure("Double debugger burger, order up!");  # nope
-(gdb) print b                                            # see b
-$4 = 2                                                   # probably need to make it bigger to satisfy a<b
+(gdb) next                                               # 看看现在是否能工作
+228	  failure("Double debugger burger, order up!");  # 不能
+(gdb) print b                                            # 看看 b 的值
+$4 = 2                                                   # 看起来我们要满足 a<b，让 b 更大些
 
 #+END_SRC
 
 
-** COMMENT Typical Cycle
+** 常见循环
 #+BEGIN_SRC sh
-> gdb -tui ./puzzlebox                      # Start gdb with text user interface on the puzzlebox
-(gdb) set args input.txt                    # Set arguments
-(gdb) break phase01                         # Create a breakpoint: stop when phase01() stars
+> gdb -tui ./puzzlebox                      # 用 TUI 模式的 gdb 运行 puzzlebox
+(gdb) set args input.txt                    # 设置参数
+(gdb) break phase01                         # 在 phase01() 开始之前设下断点
 Breakpoint 1 at 0x1110: file puzzlebox.c, line 193.
-(gdb) run                                   # Run the program
+(gdb) run                                   # 运行被调试程序
 Starting program: puzzlebox input.txt
-Let the games... BEGIN!                     # Program output
+Let the games... BEGIN!                     # 程序输出
 PHASE 1: Lets have some fun!
 
 Breakpoint 1, phase01 (hash=1397510491, args=0x7fffffffe070, argStart=1) at puzzlebox.c:193
-193	  int a = atoi(next_input());       # stopped at this line of code
-(gdb) step                                  # step forward one line of code
-194	  int b = atoi(next_input());       # now stopped before this line of code
-(gdb) print a                               # print value assigned to a in previous line
+193	  int a = atoi(next_input());       # 程序停在这行
+(gdb) step                                  # 步进一行代码
+194	  int b = atoi(next_input());       # 现在停在这行之前
+(gdb) print a                               # 打印之前行赋给 a 的值
 $1 = 1
-(gdb) step 2                                # step forward 2 lines code 
-197	  a += hash % 40;                   # next line of code that will execute
-(gdb) step                                  # step through it
+(gdb) step 2                                # 步进两行代码
+197	  a += hash % 40;                   # 下一行将被执行的代码
+(gdb) step                                  # 步进通过它
 199	  if (a<b && b>c && a<c) {
-(gdb) print a                               # show new value for a
+(gdb) print a                               # 展示 a 的新值
 $2 = 12
-(gdb) step                                  # step ahead to check the conditions
+(gdb) step                                  # 步进到检查表达式
 202	  failure("Double debugger burger, order up!");
-(gdb) kill                                  # oops, about to fail, kill the program and try again
+(gdb) kill                                  # 噢这个错误，先杀死程序再来一次
 Kill the program being debugged? (y or n) y
 
-(gdb) info breakpoint                       # check that old breaks are still around
+(gdb) info breakpoint                       # 检查之前的断点还在
 Num     Type           Disp Enb Address            What
 1       breakpoint     keep y   0x0000555555555110 in phase01 at puzzlebox.c:193
 	breakpoint already hit 1 time
-(gdb) run                                   # yep: run again
+(gdb) run                                   # 是的，再运行一次
 Starting program: puzzlebox kauf0095 5 15 25
 Let the games... BEGIN!
 PHASE 1: Lets have some fun!
 
 Breakpoint 1, phase01 (hash=1397510491, args=0x7fffffffe070, argStart=1) at puzzlebox.c:193
 193	  int a = atoi(args[argStart+0]);
-(gdb)                                       # carry on from here
+(gdb)                                       # 之后从这里继续
 #+END_SRC
 
 
-* Standard ~gdb~ Commands
-Like most debuggers, ~gdb~ gives a variety of ways to control program
-execution and inspect values. Below is a summary but the extensive
-~help~ within ~gdb~ itself gives many more details.
+* 标准 ~gdb~ 命令
+就像大多数调试器，~gdb~ 提供多种方式控制一个程序来执行或插入值。下面是一个总结但比 ~gdb~ 自己的 ~help~ 命令有更多细节。
 
-** GDB's Help System
+** GDB 的帮助系统
 GDB has an extensive built-in help accessible via ~help COMMAND~ which
 will print information on the commands. Below is a demo of getting
 help on several common commands:
